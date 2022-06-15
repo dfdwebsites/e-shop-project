@@ -1,11 +1,15 @@
-import { register } from "../api.js"
-import { getUserInfo, setUserInfo } from "../localStorage.js"
+import { update } from "../api.js"
+import { clearUser, getUserInfo, setUserInfo } from "../localStorage.js"
 import { hideLoading, showLoading, showMessage } from "../utils.js"
 
 const ProfileScreen = {
     after_render: ()=>
     {
-        document.getElementById('registerForm').addEventListener('submit', async(e)=>
+        document.getElementById('signoutBtn').addEventListener('click', ()=>{
+            clearUser();
+            document.location.hash = '/'
+        })
+        document.getElementById('profileForm').addEventListener('submit', async(e)=>
         {
             e.preventDefault()
             showLoading()
@@ -13,7 +17,7 @@ const ProfileScreen = {
             //     showMessage('Passwords dont Match')
             //     throw new Error("Passwords not match")
             // }
-            const data = await register({
+            const data = await update({
                 name: document.getElementById('name').value,
                 email: document.getElementById('email').value,
                 password: document.getElementById('password').value
@@ -38,7 +42,7 @@ const ProfileScreen = {
         }
         return `
             <div class="formContainer">
-                <form id="registerForm">
+                <form id="profileForm">
                     <ul>
                         <li>
                             <h1>User Profile</h1>
@@ -57,6 +61,9 @@ const ProfileScreen = {
                         </li>
                         <li>
                             <button type="submit" class="primary">Update</button>
+                        </li>
+                        <li>
+                            <button type="button" class="" id="signoutBtn">Sing out</button>
                         </li>
                                         
                     </ul>
