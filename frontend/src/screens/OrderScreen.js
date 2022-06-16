@@ -1,78 +1,30 @@
 
-import { createOrder } from "../api.js"
-import CheckoutSteps from "../components/CheckoutSteps.js"
-import { getCartItems, getPayment, getShipping, getUserInfo, setPayment, cleanCart } from "../localStorage.js"
-import { hideLoading, showLoading, showMessage } from "../utils.js"
-
-const converCartToOrder = ()=>
-{
-    const orderItems = getCartItems()
-    if (orderItems.length === 0)
-    {
-        document.location.hash = '/cart'
-    }
-    const shipping = getShipping()
-    if(!shipping.address)
-    {
-        document.location.hash = '/shipping'
-    }
-    const payment = getPayment()
-    if(!payment.paymentMethod)
-    {
-        document.location.hash = '/payment'
-    }
-    const itemsPrice = Math.round((orderItems.reduce((a,c)=> a + c.price * c.qty, 0)) * 1e2) / 1e2
-    const shippingPrice = itemsPrice > 100? 0.00 : 10
-    const taxPrice = Math.round(0.24  * itemsPrice * 100) / 100
-    const totalPrice = Math.round((itemsPrice + shippingPrice + taxPrice) * 1e2) / 1e2
-    return{
-        orderItems,
-        shipping,
-        payment,
-        itemsPrice,
-        shippingPrice,
-        taxPrice,
-        totalPrice
-    }
-}
+import { getOrder } from "../api.js"
+import { hideLoading, parseRequestUrl, showLoading, showMessage } from "../utils.js"
 
 const PlaceOrderScreen = {
-    after_render: async()=>
+    after_render: async()=>{},
+    render: async ()=>
     {
-        document.getElementById('placeOrderBtn').addEventListener('click', async()=>
-        {
-            const order = converCartToOrder()
-            showLoading();
-            const data = await createOrder(order);
-            hideLoading();
-            if(data.error)
-            {
-                showMessage(data.error)
-            }
-            else
-            {
-                cleanCart()
-                document.location.hash = `/order/${data.order._id}`
-            }
-        })
-
-    },
-    render: ()=>
-    {
-        const { name } = getUserInfo()
-        if (!name) {
-            document.location.hash ='/'
-        }
-        const { orderItems,
+        const request = parseRequestUrl()
+        const {
+            _id,
             shipping,
             payment,
+            orderItems,
             itemsPrice,
             shippingPrice,
             taxPrice,
-            totalPrice} = converCartToOrder()
+            totalPrice,
+            isDelivered,
+            deliveredAt,
+            isPaid,
+            paidAt
+        } = await getOrder(request.id)
+        
         return `
         <div>
-            ${CheckoutSteps.render({step1:true, step2:true, step3:true, step4:true})} 
+        <h1>Order ${_id}</h1>
             <div class="orderContainer">
                 <div class="orderInfo">
                     <div> 
@@ -83,12 +35,14 @@ const PlaceOrderScreen = {
                         ${shipping.postalCode},
                         ${shipping.country}
                         </div>
+                        ${isDelivered? `<div class="inStock"> Delivered at ${deliveredAt}</div>` : `<div class="outStock"> Not delivered </div>`  }
                     </div>
                     <div> 
                         <h2>Payment</h2>
                         <div>
                         ${payment.paymentMethod}
                         </div>
+                        ${isPaid? `<div class="inStock"> Paid at ${paidAt}</div>` : `<div class="outStock"> Not Paid </div>` }
                     </div>
                     <div>
                         <ul class="cartListContainer">
@@ -119,7 +73,7 @@ const PlaceOrderScreen = {
                             <li><div>Shipping</div><div>$${shippingPrice}</div></li>    
                             <li><div>Tax</div><div>$${taxPrice}</div></li>    
                             <li class="total"><div>Order Total</div><div>$${totalPrice}</div></li>
-                            <li><button class="primary" id="placeOrderBtn"> Place Order</button></li>    
+                             
                         </ul>
                 </div>
             </div>
