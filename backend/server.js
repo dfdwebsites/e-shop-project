@@ -5,6 +5,7 @@ import mongoose from 'mongoose'
 import bodyParser from 'body-parser'
 import config from './config.js'
 import userRouter from './routers/userRouter.js'
+import orderRouter from './routers/orderRouter.js'
  
 
 mongoose
@@ -32,6 +33,8 @@ app.use(cors())
 app.use(bodyParser.json())
 
 app.use('/api/users', userRouter)
+
+app.use('/api/orders', orderRouter)
 
 app.get('/api/products', (req,res)=>
 {

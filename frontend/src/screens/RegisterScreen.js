@@ -1,6 +1,6 @@
 import { register } from "../api.js"
 import { getUserInfo, setUserInfo } from "../localStorage.js"
-import { hideLoading, showLoading, showMessage } from "../utils.js"
+import { hideLoading, redirectUser, showLoading, showMessage } from "../utils.js"
 
 const RegisterScreen = {
     after_render: ()=>
@@ -26,14 +26,14 @@ const RegisterScreen = {
             else
             {
                 setUserInfo(data)
-                document.location.hash = '/'
+                redirectUser()
             }
         })
     },
     render: ()=>
     {
         if (getUserInfo().name) {
-            document.location.hash ='/'
+            redirectUser()
         }
         return `
             <div class="formContainer">
