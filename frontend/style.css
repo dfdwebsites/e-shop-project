@@ -83,6 +83,10 @@ img
 {
     max-width: 100%;
 }
+.fw
+{
+    width:100%
+}
 /* HEADER and NAV */
 header
 {
@@ -489,4 +493,41 @@ main
 .orderInfo > div > div
 {
     padding:10px;
+}
+/* Profile page */
+.profile
+{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+.profileInfo
+{
+    flex: 1 1 200px
+}
+.profileOrders
+{
+    flex: 3 1 600px;
+    margin-left: 10px;
+}
+table
+{
+    width: 100px;
+}
+th
+{
+    text-align: left;
+}
+tbody tr:nth-child(odd)
+{
+    background-color: rgba(114, 155, 216, 0.404);
+}
+tbody tr:nth-child(even)
+{
+    background-color: rgba(114, 155, 216, 0.774);
+}
+td
+{
+   padding: 5px;
 }

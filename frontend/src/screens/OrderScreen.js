@@ -1,8 +1,75 @@
 
-import { getOrder } from "../api.js"
-import { hideLoading, parseRequestUrl, showLoading, showMessage } from "../utils.js"
+import { getOrder, getPaypalClientId, payOrder } from "../api.js"
+import { hideLoading, parseRequestUrl, reRender, showLoading, showMessage } from "../utils.js"
 
-const PlaceOrderScreen = {
+const addPaypalSdk = async (totalPrice) =>
+{
+    const clientId = await getPaypalClientId()
+    showLoading()
+    if(!window.paypal)
+    {
+        const script = document.createElement('script')
+        script.type = 'text/javascript'
+        script.src = 'http://www.paypalobjects.com/api/checkout.js'
+        script.async = true
+        script.onload = () => handlePayment(clientId, totalPrice)
+        document.body.appendChild(script)
+    }
+    else
+    {
+        handlePayment(clientId, totalPrice)
+    }
+}
+
+const handlePayment = (clientId, totalPrice) =>
+{
+    window.paypal.Button.render({
+        env:'sandbox',
+        client: {
+            sandbox: clientId,
+            production: ''
+        },
+        locale: 'en_US',
+        style: {
+            size: 'responsive',
+            color: 'gold',
+            shape: 'pill'
+        },
+        commit: true,
+        payment(data,actions) {
+            return actions.payment.create({
+                transactions: [
+                    {
+                        amount:{
+                            total: totalPrice,
+                            currency: 'USD'
+                        }
+                    }
+                ]
+            })
+        },
+        onAuthorize(data, actions){
+            return actions.payment.execute().then(async()=>
+            {
+                showLoading()
+                await payOrder(parseRequestUrl().id, {
+                    orderID: data.orderID,
+                    payerID : data.payerID,
+                    paymentID: data.paymentID
+                } )
+                hideLoading()
+                showMessage('Payment was successfull', ()=>
+                {
+                    reRender(OrderScreen)
+                })
+            })
+        }
+    }, '#paypal-button'
+    ).then(()=>hideLoading())
+}
+
+
+const OrderScreen = {
     after_render: async()=>{},
     render: async ()=>
     {
@@ -21,7 +88,12 @@ const PlaceOrderScreen = {
             isPaid,
             paidAt
         } = await getOrder(request.id)
-        
+        if(!isPaid)
+        {
+            addPaypalSdk(totalPrice)
+        }
+
+
         return `
         <div>
         <h1>Order ${_id}</h1>
@@ -73,7 +145,8 @@ const PlaceOrderScreen = {
                             <li><div>Shipping</div><div>$${shippingPrice}</div></li>    
                             <li><div>Tax</div><div>$${taxPrice}</div></li>    
                             <li class="total"><div>Order Total</div><div>$${totalPrice}</div></li>
-                             
+                            <li><div class="fw" id="paypal-button"></div></li>
+                    
                         </ul>
                 </div>
             </div>
@@ -81,4 +154,4 @@ const PlaceOrderScreen = {
         `
     }
 }
-export default PlaceOrderScreen
+export default OrderScreen
