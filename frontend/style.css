@@ -531,3 +531,29 @@ td
 {
    padding: 5px;
 }
+
+/* Dashboard */
+
+.dashboard
+{
+    display: flex;
+    flex-wrap: wrap;
+    min-height: calc(100vh - (145px + 76px));
+}
+.dashboard h1
+{
+    font-size: 30px;
+    margin: 10px 0;
+}
+.dashboardMenu
+{
+    flex: 1 1 200px;
+}
+.selected a
+{
+    color: var(--accent-color);
+}
+.dashboardContent
+{
+    flex: 4 1 800px;
+}
